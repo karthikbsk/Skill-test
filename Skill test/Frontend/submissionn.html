@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionnaire</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #timer {
+            font-size: 1.5em;
+            color: red;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        #final-score-container {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Questionnaire</h1>
+            <div id="timer">15:00</div>
+        </div>
+        <div id="question-container"></div>
+        <div class="footer">
+            <button id="next-button" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+    <div id="final-score-container" class="hidden">
+        <h2>Final Score</h2>
+        <p id="final-score"></p>
+    </div>
+    <script>
+        let currentQuestionIndex = 0;
+        let scoreTotal = 0;
+        let questionCount = 0;
+        let timeLeft = 15 * 60;
+        let timerInterval;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchQuestions();
+        });
+
+        function fetchQuestions() {
+            fetch("http://localhost:8000/generated_questions")
+                .then(response => response.json())
+                .then(data => {
+                    sessionStorage.setItem("finalScore", 0)
+                    sessionStorage.setItem('questions', JSON.stringify(data));
+                    questionCount = data.length;
+                    displayQuestion(currentQuestionIndex);
+                    startTimer();
+                })
+                .catch(error => console.error('Error fetching questions:', error));
+        }
+
+        function displayQuestion(index) {
+            const questions = JSON.parse(sessionStorage.getItem('questions'));
+            if (index < questions.length) {
+                const questionContainer = document.getElementById('question-container');
+                questionContainer.innerHTML = `
+                    <p>${questions[index].question}</p>
+                    <textarea id="answer" rows="4" cols="50"></textarea>
+                `;
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function nextQuestion() {
+            const answer = document.getElementById('answer').value;
+            if (answer.trim()) {
+                evaluateAnswer(currentQuestionIndex + 1, answer);
+            } else {
+                alert("Please enter an answer before proceeding.");
+            }
+        }
+
+        function evaluateAnswer(index, answer) {
+    fetch("http://localhost:8000/evaluate_answer", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ index: index, answer: answer })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let storedScore = parseFloat(sessionStorage.getItem('finalScore')) || 0;
+        console.log(storedScore + " Current Score in session storage before submitting");
+        console.log(data.score + " Current Score in Response data before submitting");
+
+        let newScore = (storedScore + data.score);
+        sessionStorage.setItem('finalScore', newScore);
+
+        currentQuestionIndex++;
+        displayQuestion(currentQuestionIndex);
+
+        if (currentQuestionIndex < questionCount) {
+            resetTimer();
+        } else {
+            showFinalScore();
+        }
+    })
+    .catch(error => console.error('Error evaluating answer:', error));
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            nextQuestion();
+        } else {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+    }, 1000);
+}
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    nextQuestion();
+                } else {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            timeLeft = 15 * 60;
+        }
+
+        function showFinalScore() {
+            clearInterval(timerInterval);
+            const finalScoreContainer = document.getElementById('final-score-container');
+            const container = document.querySelector('.container');
+            const finalScore = (scoreTotal / questionCount).toFixed(2);
+            document.getElementById('final-score').textContent = `Your final score is: ${finalScore}`;
+            container.classList.add('hidden');
+            finalScoreContainer.classList.remove('hidden');
+
+            // Redirect to score.html after a delay
+            setTimeout(() => {
+                window.location.href = 'score.html';
+            }, 1500); // Redirect after 3 seconds (adjust this delay as needed)
+        }
+    </script>
+</body>
+</html>

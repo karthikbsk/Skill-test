@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- Coding by CodingNepal | www.codingnepalweb.com-->
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <title>Login and Registration Form in HTML & CSS | CodingLab</title>
+  <link rel="stylesheet" href="./assets/css/Signup.css">
+  <!-- Fontawesome CDN Link -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-svg-core@1.2.36/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://kit.fontawesome.com/ca42b3e135.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="./assets/js/main.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container">
+  <input type="checkbox" id="flip">
+  <div class="cover">
+    <div class="front">
+      <img src="https://media.istockphoto.com/id/1550314794/photo/closeup-of-black-businesswoman-using-laptop-and-typing.jpg?s=2048x2048&w=is&k=20&c=BQprpp3qUWgY0ffO68tqeqrZrJCJtXdLAGHc67slaTE=" alt="">
+      <div class="text">
+        <span class="text-1">Every new friend is a <br> new adventure</span>
+        <span class="text-2">Let's get connected</span>
+      </div>
+    </div>
+    <div class="back">
+      <!--<img class="backImg" src="images/backImg.jpg" alt="">-->
+      <div class="text">
+        <span class="text-1">Complete miles of journey <br> with one step</span>
+        <span class="text-2">Let's get started</span>
+      </div>
+    </div>
+  </div>
+  <div class="forms">
+    <div class="form-content">
+      <div class="login-form">
+        <div class="title">Login</div>
+        <form id="login-form" action="#">
+          <div class="input-boxes">
+            <div class="input-box">
+              <i class="fas fa-envelope"></i>
+              <input type="text" id="login-email" name="email" placeholder="Enter your email" required autocomplete="new-password">
+            </div>
+            <div class="input-box">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="login-password" name="password" placeholder="Enter your password" required autocomplete="new-password">
+            </div>
+            <div class="text"><a href="#">Forgot password?</a></div>
+            <div class="button input-box">
+              <input type="submit" value="Submit">
+            </div>
+            <div class="text sign-up-text">Don't have an account? <label for="flip">Sign up now</label></div>
+          </div>
+        </form>
+      </div>
+      <div class="signup-form">
+        <div class="title">Signup</div>
+        <form id="signup-form" action="#">
+          <div class="input-boxes">
+            <div class="input-box">
+              <i class="fas fa-user"></i>
+              <input type="text" id="name" name="name" placeholder="Enter your full name" required autocomplete="Your Name">
+            </div>
+            <div class="input-box">
+              <i class="fas fa-envelope"></i>
+              <input type="text" id="signup-email" name="email" placeholder="Enter your email" required autocomplete="new-password">
+            </div>
+            <div class="input-box">
+              <i class="fad fa-phone"></i>
+              <input type="text" id="phone_number" name="phone_number" placeholder="Enter your phone number" required autocomplete="new-password">
+            </div>
+            <div class="input-box">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="signup-password" name="password" placeholder="Enter your password" required autocomplete="new-password">
+            </div>
+            <div class="input-box">
+              <i class="fas fa-lock"></i>
+              <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" required autocomplete="new-password">
+            </div>
+            <div class="button input-box">
+              <input type="button" value="Submit" id="signup-btn">
+            </div>
+            <div class="text sign-up-text">Already have an account? <label for="flip">Login now</label></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const firstNameInput = document.getElementById("name");
+    const emailInput = document.getElementById("signup-email");
+    const phoneNumberInput = document.getElementById("phone_number");
+    const passwordInput = document.getElementById("signup-password");
+    const confirmPasswordInput = document.getElementById("confirm_password");
+    const signupBtn = document.getElementById("signup-btn");
+
+    signupBtn.addEventListener("click", () => {
+      const firstName = firstNameInput.value;
+      const email = emailInput.value;
+      const phoneNumber = phoneNumberInput.value;
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+
+      // Validate password and confirm password match
+      if (password !== confirmPassword) {
+        alert("Passwords do not match");
+        return;
+      }
+
+      axios.post("http://localhost:8081/api/users/post", {
+          name: firstName,
+          email: email,
+          phone: phoneNumber,
+          password: password
+        })
+        .then((response) => {
+          console.log(response);
+          window.location.reload();
+        })
+        .catch((error) => {
+          console.error(error);
+          alert("Signup failed. Please try again.");
+        });
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const loginForm = document.getElementById("login-form");
+
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault(); // Prevent default form submission
+      
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+
+      console.log(email + " " + password);
+
+      axios.post("http://localhost:8081/api/users/login", {
+          email: email,
+          password: password
+        })
+        .then((response) => {
+          console.log(response);
+          // Check if login was successful
+          if (response.status === 200) {
+            
+            sessionStorage.setItem("email", email);
+            // Redirect to another page or perform another action
+            window.location.href = "./topic.html"; // Example redirect to home page
+          } else {
+            alert("Login failed. Please check your credentials.");
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          if (error.response) {
+            alert(`Login failed: ${error.response.data.message || error.response.statusText}`);
+          } else if (error.request) {
+            alert("No response from server. Please try again later.");
+          } else {
+            alert(`Error: ${error.message}`);
+          }
+        });
+    });
+  });
+</script>
+
+</body>
+</html>

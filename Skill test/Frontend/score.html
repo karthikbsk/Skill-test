@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Score Display and Search Results</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f2f5;
+    }
+
+    .score-container {
+        text-align: center;
+        padding-top: 50px; /* Adjust top padding to create space between score and top of the page */
+    }
+
+    .score-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 10px solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 50px; /* Add margin-bottom to create space between score and search results */
+    }
+
+    .score-circle.score-1 {
+        border-color: #ff6347; /* Tomato */
+        color: #ff6347;
+    }
+
+    .score-circle.score-2 {
+        border-color: #ffa500; /* Orange */
+        color: #ffa500;
+    }
+
+    .score-circle.score-3 {
+        border-color: #ffd700; /* Gold */
+        color: #ffd700;
+    }
+
+    .score-circle.score-4 {
+        border-color: #adff2f; /* GreenYellow */
+        color: #adff2f;
+    }
+
+    .score-circle.score-5 {
+        border-color: #32cd32; /* LimeGreen */
+        color: #32cd32;
+    }
+
+    .score-circle.score-6 {
+        border-color: #008000; /* Green */
+        color: #008000;
+    }
+
+    .score-circle.score-7 {
+        border-color: #20b2aa; /* LightSeaGreen */
+        color: #20b2aa;
+    }
+
+    .score-circle.score-8 {
+        border-color: #1e90ff; /* DodgerBlue */
+        color: #1e90ff;
+    }
+
+    .score-circle.score-9 {
+        border-color: #4169e1; /* RoyalBlue */
+        color: #4169e1;
+    }
+
+    .score-circle.score-10 {
+        border-color: #0000cd; /* MediumBlue */
+        color: #0000cd;
+    }
+
+    .search-results-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-result {
+        margin-bottom: 20px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-result h2 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    .search-result p {
+        margin: 0;
+    }
+
+    .search-result a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .search-result a:hover {
+        text-decoration: underline;
+    }
+
+    .snippet {
+        color: #666;
+    }
+
+    .related-searches {
+        margin-top: 20px;
+    }
+
+    .related-searches ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .related-searches li {
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .related-searches li a {
+        color: #555;
+        text-decoration: none;
+    }
+
+    .related-searches li a:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+<body>
+<div class="score-container">
+    <div class="score-circle" id="scoreDisplay"></div>
+</div>
+
+<div class="search-results-container" id="searchResultsContainer"></div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    function fetchScore() {
+            axios.get('http://localhost:8000/get-score')
+                .then(response => {
+                    const score = response.data;  // Store the score from the response
+                    const number = sessionStorage.getItem('number')
+                    const finalScore = score/number
+                    console.log('Fetched Score:', score);
+
+                    // Display the score in the scoreDisplay element
+                    document.getElementById('scoreDisplay').textContent = finalScore;
+                })
+                .catch(error => {
+                    console.error('Error fetching the score:', error);
+                });
+        }
+
+        // Call the fetchScore function when the page loads
+        window.onload = function() {
+            fetchScore();
+        };
+
+
+    topic = sessionStorage.getItem("topic")
+
+    // Fetch Serper API data and display search results
+    fetch("https://google.serper.dev/search", {
+        method: 'POST',
+        headers: {
+            'X-API-KEY': 'f0b8fae85fe2ed4de7593229fe8752a93ead5e81',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "q": `${topic} tutorial` }),
+        redirect: 'follow'
+    })
+    .then(response => response.json())
+    .then(data => {
+        const searchResultsContainer = document.getElementById('searchResultsContainer');
+        data.organic.forEach(result => {
+            const searchResult = document.createElement('div');
+            searchResult.classList.add('search-result');
+            searchResult.innerHTML = `
+                <h2><a href="${result.link}">${result.title}</a></h2>
+                <p class="snippet">${result.snippet}</p>
+            `;
+            searchResultsContainer.appendChild(searchResult);
+        });
+    })
+    .catch(error => console.log('error', error));
+</script>
+</body>
+</html>
